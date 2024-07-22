@@ -16,11 +16,22 @@ func home(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Initialize a slice containing the paths to the two files. It's important
+	// to note that the file containing our base template must be the *first*
+	// file in the slice.
+	files := []string{
+		"./ui/html/base.tmpl.html",
+		"./ui/html/pages/home.tmpl.html",
+	}
+
 	// Use the template.ParseFiles() function to read the template file into a
 	// template set. If there's an error, we log the detailed error message and use
 	// the http.Error() function to send a generic 500 Internal Server Error
 	// response to the user.
-	ts, err := template.ParseFiles("./ui/html/pages/home.tmpl.html")
+	// Use the template.ParseFiles() function to read the files and store the
+	// templates in a template set. Notice that we can pass the slice of file
+	// paths as a variadic parameter?
+	ts, err := template.ParseFiles(files...)
 
 	if err != nil {
 		log.Print(err.Error())
@@ -32,13 +43,20 @@ func home(w http.ResponseWriter, r *http.Request) {
 	// template content as the response body. The last parameter to Execute()
 	// represents any dynamic data that we want to pass in, which for now we'll
 	// leave as nil.
-	err = ts.Execute(w, nil)
+	// ------> err = ts.Execute(w, nil)
+
+	// Use the ExecuteTemplate() method to write the content of the "base"
+	// template as the response body.
+
+	/*================>> So now, instead of containing HTML directly, our template set contains 3 named templates —
+	base , title and main . We use the ExecuteTemplate() method to tell Go that we specifically
+	want to respond using the content of the base template (which in turn invokes our title and
+	main templates)*/
+	err = ts.ExecuteTemplate(w, "base", nil)
 	if err != nil {
 		log.Print(err.Error())
 		http.Error(w, "Internal Server Error", 500)
 	}
-
-	w.Write([]byte("This is Home page"))
 }
 
 func tboxView(w http.ResponseWriter, r *http.Request) {
